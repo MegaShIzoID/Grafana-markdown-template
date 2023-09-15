@@ -1,46 +1,24 @@
-{{- /* Telegram message to use: {{ template "telegram.message2" . }} */ -}}
-{{ define "__alerts_list" -}}
-{{ range . }}
-{{if ne (index .Labels "alertname") "" -}}
-{{ if eq .Status "firing" }}🔴{{ else }}🟢{{ end }}
-    {{- if ne (index .Labels "severity") "" -}}
-        ___***P{{ index .Labels "severity" }}***___ {{ end -}}
-***{{ index .Labels "alertname" }}*** 🕙 {{ .StartsAt.Format "15:04:05    🗓️ 2006-01-02" }}{{ end -}}
-{{ if len .Annotations }}
-___Annotations:___
-    {{ range .Annotations.SortedPairs -}}
-    - {{ .Name }}: {{ .Value }}
-    {{ end -}}
+{{- define "__alerts_list" -}}
+{{- range . -}}
+{{ if eq .Status "firing" }}🔴{{ else }}🟢{{ end -}}
+***{{ index .Labels "host" }}***
+🕙 {{ .StartsAt.Format "15:04:05   🗓️ 2006-01-02" }}
+{{- if len .Annotations }}
+{{ range .Annotations.SortedPairs -}}
+{{ .Value }}
+{{- end }}
+{{- end }}
+		--------
+{{ end -}}
 {{ end }}
-{{ if len .Labels -}}
-___Labels:___
-    {{ range .Labels.SortedPairs -}}
-    - {{ .Name }}: {{ .Value }}
-    {{ end -}}
-{{ end }}
-___Value:___
-    {{- if gt (len .GeneratorURL) 0 }}[Source]({{ .GeneratorURL }}) |{{ end }}
-    {{ if gt (len .SilenceURL) 0 }}[Silence]({{ .SilenceURL }}) |{{ end }}
-    {{ if gt (len .DashboardURL) 0 }}[Dashboard]({{ .DashboardURL }}) |{{ end }}
-    {{ if gt (len .PanelURL) 0 }}[Panel]({{ .PanelURL }}){{ end }}
-    ```--------```
-{{- end -}} {{- /* range */ -}}
-{{- end -}} {{- /* define __alerts_list */ -}}
-
-{{ define "__telegram.title" -}}
-{{ if ne (index .CommonLabels "severity") "" }} ___***P{{ index .CommonLabels "severity" }}***___ {{ end -}}
-{{ if ne (index .CommonLabels "alertname") "" -}}
-    [{{ index .CommonLabels "alertname" }}]
-{{- end -}}
-{{- end -}}{{- /* define __telegram */ -}}
 
 {{ define "telegram.message" }}
-    {{ if gt (len .Alerts.Firing) 0 }}
-    🚨 ***ALARM*** (#{{ .Alerts.Firing | len }})
-    {{- template "__alerts_list" .Alerts.Firing }}{{ end -}}
-    {{ if gt (len .Alerts.Resolved) 0 }}
-    ✅ ***RESOLVED***{{ template "__telegram.title" . }} (#{{ .Alerts.Resolved | len }})
-    {{- template "__alerts_list" .Alerts.Resolved }}{{ end }}
-
-[📲 Grafana]({{ .ExternalURL }})
-{{- end -}}
+{{- if gt (len .Alerts.Firing) 0 }}
+{{- template "__alerts_list" }}
+[inline URL](http://www.example.com/)
+{{ end }}
+{{- if gt (len .Alerts.Resolved) 0 }}
+{{- template "__alerts_list" }}
+[inline URL](http://www.example.com/)
+{{ end }}
+{{ end }}{{- /* define telegram.message */ -}}
