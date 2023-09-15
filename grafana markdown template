@@ -1,0 +1,46 @@
+{{- /* Telegram message to use: {{ template "telegram.message2" . }} */ -}}
+{{ define "__alerts_list" -}}
+{{ range . }}
+{{if ne (index .Labels "alertname") "" -}}
+{{ if eq .Status "firing" }}🔴{{ else }}🟢{{ end }}
+    {{- if ne (index .Labels "severity") "" -}}
+        ___***P{{ index .Labels "severity" }}***___ {{ end -}}
+***{{ index .Labels "alertname" }}*** 🕙 {{ .StartsAt.Format "15:04:05    🗓️ 2006-01-02" }}{{ end -}}
+{{ if len .Annotations }}
+___Annotations:___
+    {{ range .Annotations.SortedPairs -}}
+    - {{ .Name }}: {{ .Value }}
+    {{ end -}}
+{{ end }}
+{{ if len .Labels -}}
+___<i>Labels:___
+    {{ range .Labels.SortedPairs -}}
+    - {{ .Name }}: {{ .Value }}
+    {{ end -}}
+{{ end }}
+___Value:___ ```{{ .ValueString }}```
+    {{- if gt (len .GeneratorURL) 0 }}[source]({{ .GeneratorURL }})  |  {{ end }}
+    {{- if gt (len .SilenceURL) 0 }}[silence]({{ .SilenceURL }})🔕  |  {{ end }}
+    {{- if gt (len .DashboardURL) 0 }}📁 [dashboard]({{ .DashboardURL }})  |  {{ end }}
+    {{- if gt (len .PanelURL) 0 }}[panel]({{ .PanelURL }}) {{- end -}}
+    ```--------```
+{{- end -}} {{- /* range */ -}}
+{{- end -}} {{- /* define __alerts_list */ -}}
+
+{{ define "__telegram.title" -}}
+{{ if ne (index .CommonLabels "severity") "" }} ___***P{{ index .CommonLabels "severity" }}***___ {{ end -}}
+{{ if ne (index .CommonLabels "alertname") "" -}}
+    [{{ index .CommonLabels "alertname" }}]
+{{- end -}}
+{{- end -}}{{- /* define __telegram */ -}}
+
+{{ define "telegram.message" }}
+    {{ if gt (len .Alerts.Firing) 0 }}
+    🚨 ***ALARM*** (#{{ .Alerts.Firing | len }})
+    {{- template "__alerts_list" .Alerts.Firing }}{{ end -}}
+    {{ if gt (len .Alerts.Resolved) 0 }}
+    ✅ ***RESOLVED***{{ template "__telegram.title" . }} (#{{ .Alerts.Resolved | len }})
+    {{- template "__alerts_list" .Alerts.Resolved }}{{ end }}
+
+[📲 Grafana]({{ .ExternalURL }})
+{{- end -}}
