@@ -1,24 +1,21 @@
 {{- define "__alerts_list" -}}
 {{- range . -}}
 {{ if eq .Status "firing" }}🔴{{ else }}🟢{{ end -}}
-***{{ index .Labels "host" }}***
-🕙 {{ .StartsAt.Format "15:04:05   🗓️ 2006-01-02" }}
+{{ .StartsAt.Format "02-01-2006     15:04:05" }}
 {{- if len .Annotations }}
 {{ range .Annotations.SortedPairs -}}
 {{ .Value }}
 {{- end }}
 {{- end }}
-		--------
+		---------------
 {{ end -}}
 {{ end }}
 
 {{ define "telegram.message" }}
 {{- if gt (len .Alerts.Firing) 0 }}
-{{- template "__alerts_list" }}
-[inline URL](http://www.example.com/)
-{{ end }}
+{{ template "__alerts_list" .Alerts.Firing }}
+{{- end -}}
 {{- if gt (len .Alerts.Resolved) 0 }}
-{{- template "__alerts_list" }}
-[inline URL](http://www.example.com/)
-{{ end }}
-{{ end }}{{- /* define telegram.message */ -}}
+{{ template "__alerts_list" .Alerts.Resolved }}
+{{- end -}}
+{{- end -}}{{- /* define telegram.message */ -}}
